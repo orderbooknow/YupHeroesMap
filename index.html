@@ -26,6 +26,7 @@ input[type=color]{width:34px;height:28px;padding:0;border:1px solid var(--bd);bo
 .list .g.sel{background:rgba(245,197,66,.18)}.list .g span{flex:1}
 #msg{position:absolute;left:10px;bottom:10px;background:var(--pn);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;max-width:60%;display:none}
 #coord{position:absolute;right:10px;bottom:10px;background:var(--pn);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:3px 8px;font-size:12px;pointer-events:none}
+#pfloat{display:none;position:absolute;left:50%;top:58px;transform:translateX(-50%);z-index:12;gap:6px;align-items:center;background:var(--pn);border:2px solid var(--ac);border-radius:12px;padding:8px;box-shadow:0 2px 12px rgba(0,0,0,.45);max-width:94%}#pfloat input{width:150px}
 #fsb{position:absolute;left:10px;top:10px;display:flex;gap:6px;z-index:10}
 #fsb button{width:40px;height:40px;font-size:20px;padding:0;background:var(--pn);opacity:.9}#menubtn{display:none}body.full #menubtn{display:inline-block}
 #qbar{display:none;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));gap:6px;background:var(--pn);border:1px solid var(--bd);border-radius:14px;padding:6px;z-index:10;max-width:96%}
@@ -36,6 +37,7 @@ body.full.open #side{display:flex;position:fixed;z-index:30;right:0;top:0;bottom
 @media(max-width:700px){#app{flex-direction:column}#side{width:auto;height:44%;border-left:0;border-top:1px solid var(--bd)}#coord{display:none}}
 </style></head><body><div id="app">
 <div id="view"><div id="stage"><img id="im" alt=""><svg id="svg"></svg></div><div id="msg"></div><div id="coord">—</div>
+<div id="pfloat"><input type="text" id="plab" placeholder="Подпись" autocomplete="off"><button id="pfs">✔ Сохранить</button><button id="pfc" title="Отмена">✖</button></div>
 <div id="fsb"><button id="fsbtn" title="На весь экран">⛶</button><button id="menubtn" title="Панель инструментов">☰</button></div>
 <div id="qbar"><button data-t="view" title="Смотреть">👁</button><button data-t="pin" title="Метка">📍</button><button data-t="link" title="Связь">🔗</button><button data-t="mov" title="Двигать">✥</button><button data-t="del" title="Удалить">🗑</button><button data-a="undo" title="Назад">↶</button><button class="lk" data-a="done" title="Готово">✔</button><button class="lk" data-a="cancel" title="Отмена">✖</button></div></div>
 <div id="side">
@@ -46,18 +48,18 @@ body.full.open #side{display:flex;position:fixed;z-index:30;right:0;top:0;bottom
 <div class="row" id="tools">
 <button data-t="view" class="on">👁 Смотреть</button><button data-t="pin">📍 Метка</button><button data-t="link">🔗 Связь</button>
 <button data-t="ren">✎ Изменить</button><button data-t="mov">✥ Двигать</button><button data-t="del">🗑 Удалить</button><button id="undo">↶ Назад</button></div>
-<div class="row" id="cols"></div><div class="row" id="sizes"></div><div class="row" id="icons"></div>
+<div class="row" id="cols"></div><div class="row" id="sizes"></div><div class="row" id="presets"></div><div class="mu" id="pname"></div><details><summary>Другие значки</summary><div class="row" id="icons" style="margin-top:6px"></div></details>
 <input type="text" id="lab" placeholder="Подпись метки (например, номер выхода)">
 <div id="lbar"><b id="hint">Связь</b>
 <select id="mode"><option value="chain">Цепочка: 1 → 2 → 3 …</option><option value="ring">Кольцо: 1 → 2 → 3 → 1</option><option value="star">Звезда: 1 ко всем остальным</option></select>
 <input type="text" id="gname" placeholder="Название связи (необязательно)">
 <div class="row"><button id="done">✔ Готово</button><button id="cancel">✖ Отмена</button></div></div>
-<div id="pbar"><b>Новая метка — проверьте положение и подпись, затем «Сохранить»</b><div class="row"><button id="pdone">✔ Сохранить</button><button id="pcancel">✖ Отмена</button></div></div>
 <div id="info"><b id="it"></b><input type="text" id="il" placeholder="Подпись"><textarea id="in" rows="3" placeholder="Заметка: что здесь, кто нашёл, когда…"></textarea>
-<div class="row"><button id="isave">💾 Сохранить</button><button id="iclose">Закрыть</button></div></div>
+<div class="row"><button id="isave">💾 Сохранить</button><button id="ishare">🔗 Ссылка</button><button id="iclose">Закрыть</button></div></div>
 <div><input type="text" id="q" placeholder="🔎 Поиск: название, заметка, клетка (F7) или x,y"><div class="list" id="res"></div></div>
+<button id="share" style="align-self:flex-start">🔗 Ссылка на это место</button>
 <div class="row"><label><input type="checkbox" id="ll" checked> связи</label><label><input type="checkbox" id="lm" checked> метки</label><label><input type="checkbox" id="lg"> сетка</label></div>
-<details><summary>Фильтры меток</summary><div id="flt" class="mu">Пока нет меток</div></details>
+<details><summary>Фильтры меток</summary><div class="row" style="margin:6px 0"><button id="fshow">👁 все</button><button id="fhide">🙈 все</button></div><div id="flt" class="mu">Пока нет меток</div></details>
 <details open><summary>Связи (<span id="cnt">0</span>)</summary><div class="row" style="margin:6px 0"><button id="showall">👁 все</button><button id="hideall">🙈 все</button></div><div class="list" id="groups"></div></details>
 <details><summary>Сохранить / загрузить</summary><div class="row" style="margin-top:6px"><button id="png">🖼 Картинка с метками</button><button id="exp">💾 Данные (файл)</button><button id="imp">📥 Импорт</button></div><input type="file" id="file" accept=".json" style="display:none"></details>
 <div class="mu">Смотреть: нажмите на метку — откроются заметка и координаты. Связь: «🔗» → метки по порядку → «Готово»; готовую можно править, выбрав её в списке. «↶ Назад» (или Ctrl+Z) отменяет ваши последние действия. Сетка A1–Q14 помогает искать места. «👁» у связи скрывает её только у вас.</div>
@@ -69,7 +71,7 @@ const IW=6652,IH=5381,GRID=400,COLN=Math.ceil(IW/GRID),ROWN=Math.ceil(IH/GRID);d
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),v=$('#view'),st=$('#stage'),sv=$('#svg');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const COLS=['#39d353','#f5c542','#ff5c5c','#4da3ff','#c77dff','#ff9f43','#2ee6d6','#ff6bcb','#ffffff','#9aa4b2','#8b5a2b'];
-const SZ=[.7,1,1.25,1.5],SL=['S','M','L','XL'],ICONS=['●','⭐','🚩','🌀','🏰','⚔️','💎','🏠','☠️','🌲','⛏️','❗','❓','🐉','🚪','⚓'];
+const SZ=[.7,1,1.25,1.5],SL=['S','M','L','XL'],ICONS=['●','⭐','🚩','🌀','🏰','⚔️','💎','🏠','☠️','🌲','⛏️','❗','❓','🐉','🚪','⚓','🏪','📦'];
 const colName=i=>String.fromCharCode(65+i),cellOf=(x,y)=>colName(Math.min(COLN-1,Math.max(0,Math.floor(x/GRID))))+(Math.min(ROWN-1,Math.max(0,Math.floor(y/GRID)))+1);
 let tf={x:0,y:0,z:.2},minZ=.05,tool='view',col=COLS[0],sz=1,icon='●',pins={},groups={},draft=[],sel=null,selPin=null,db=null,ro=true,dragPin=null,pdraft=null,dragOrig=null,flash=null,curB=null,hist=[],hid=new Set(),fIc=new Set(),fCol=new Set();
 const LS={g:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
@@ -77,9 +79,9 @@ try{hid=new Set(JSON.parse(LS.g('yl_hid')||'[]'))}catch(e){}
 const saveHid=()=>LS.s('yl_hid',JSON.stringify([...hid]));
 // ---- язык / language
 let lang=LS.g('yl_lang')||(/^(ru|uk|be)/i.test(navigator.language||'ru')?'ru':'en'),whoRu='Подключение…';
-const EN={'📲 На экран «Домой»':'📲 Add to Home Screen',"YupLink — интерактивная карта": "YupLink — interactive map", "YupLink · общая карта": "YupLink · shared map", "Подключение…": "Connecting…", "Войти": "Log in", "Код редактора": "Editor code", "Ваш ник (подпишется у меток)": "Your nickname (shown on your markers)", "👁 Смотреть": "👁 View", "📍 Метка": "📍 Marker", "🔗 Связь": "🔗 Link", "✎ Изменить": "✎ Edit", "✥ Двигать": "✥ Move", "🗑 Удалить": "🗑 Delete", "↶ Назад": "↶ Undo", "Размер:": "Size:", "Свой цвет": "Custom color", "Подпись метки (например, номер выхода)": "Marker label (e.g. exit number)", "Связь": "Link", "Цепочка: 1 → 2 → 3 …": "Chain: 1 → 2 → 3 …", "Кольцо: 1 → 2 → 3 → 1": "Ring: 1 → 2 → 3 → 1", "Звезда: 1 ко всем остальным": "Star: 1 to all the others", "Название связи (необязательно)": "Link name (optional)", "✔ Готово": "✔ Done", "✖ Отмена": "✖ Cancel", "Подпись": "Label", "Заметка: что здесь, кто нашёл, когда…": "Note: what is here, who found it, when…", "💾 Сохранить": "💾 Save", "Закрыть": "Close", "🔎 Поиск: название, заметка, клетка (F7) или x,y": "🔎 Search: name, note, cell (F7) or x,y", "метки": "markers", "связи": "links", "сетка": "grid", "Фильтры меток": "Marker filters", "Пока нет меток": "No markers yet", "Связи (": "Links (", "👁 все": "👁 all", "🙈 все": "🙈 all", "Сохранить / загрузить": "Save / load", "🖼 Картинка с метками": "🖼 Image with markers", "💾 Данные (файл)": "💾 Data (file)", "📥 Импорт": "📥 Import", "Смотреть: нажмите на метку — откроются заметка и координаты. Связь: «🔗» → метки по порядку → «Готово»; готовую можно править, выбрав её в списке. «↶ Назад» (или Ctrl+Z) отменяет ваши последние действия. Сетка A1–Q14 помогает искать места. «👁» у связи скрывает её только у вас.": "View: click a marker to open its note and coordinates. Link: “🔗” → click markers in order → “Done”; an existing link can be edited by selecting it in the list. “↶ Undo” (or Ctrl+Z) reverts your recent actions. The A1–Q14 grid helps you find places. The “👁” next to a link hides it for you only.", "На весь экран": "Fullscreen", "Панель инструментов": "Toolbar", "Смотреть": "View", "Метка": "Marker", "Двигать": "Move", "Удалить": "Delete", "Назад": "Undo", "Готово": "Done", "Отмена": "Cancel", "Показать/скрыть": "Show/hide", "Выйти из полного экрана": "Exit fullscreen", "Нажмите на карту, чтобы поставить метку, затем «Сохранить»": "Click the map to place a marker, then press “Save”", "Новая метка — проверьте положение и подпись, затем «Сохранить»": "New marker — check the position and label, then press “Save”", "✔ Сохранить": "✔ Save", "Метка сохранена": "Marker saved", "Нажимайте метки по порядку, затем «Готово»": "Click markers in order, then press “Done”", "Нажмите на метку — она получит выбранные цвет, размер, значок и подпись (если поле не пустое)": "Click a marker to apply the selected color, size, icon and label (if the field is not empty)", "Зажмите метку и перетащите": "Press and drag a marker", "Нажмите на метку, чтобы удалить её": "Click a marker to delete it", "Нужен код редактора": "Editor code required", "База недоступна — только просмотр": "Database unavailable — view only", "Чтобы редактировать, введите код редактора (справа вверху) и нажмите «Войти»": "To edit, enter the editor code (top right) and press “Log in”", "Нет прав на запись: проверьте код редактора": "No write access: check the editor code", "Ошибка сохранения: ": "Save error: ", "Нечего отменять": "Nothing to undo", "Не удалось отменить": "Could not undo", "Отменено": "Undone", "В связи должно остаться минимум 2 точки": "A link must keep at least 2 points", "Нужно минимум 2 точки": "At least 2 points are needed", "Связь сохранена": "Link saved", "Браузер не дал сохранить картинку": "The browser would not save the image", "Готовлю картинку…": "Preparing the image…", "Не удалось создать картинку": "Could not create the image", "Файл не читается": "Cannot read the file", "Импортировано": "Imported", "Этот браузер не поддерживает системный полный экран. На iPhone: «Поделиться» → «На экран «Домой»», тогда карта будет открываться на весь экран.": "This browser does not support system fullscreen. On iPhone: Share → “Add to Home Screen”, then the map will open fullscreen.", "Ошибка подключения к базе (проверьте настройки Supabase и SQL)": "Database connection error (check Supabase settings and SQL)", "Введите код": "Enter the code", "Готово, можно редактировать": "Done, you can edit now", "Неверный код": "Wrong code", "Режим просмотра": "View mode", "Режим редактора": "Editor mode", "Не заполнены настройки Supabase в index.html": "Supabase settings are not filled in index.html", "Ничего не найдено": "Nothing found"};
+const EN={'📲 На экран «Домой»':'📲 Add to Home Screen',"YupLink — интерактивная карта": "YupLink — interactive map", "YupLink · общая карта": "YupLink · shared map", "Подключение…": "Connecting…", "Войти": "Log in", "Код редактора": "Editor code", "Ваш ник (подпишется у меток)": "Your nickname (shown on your markers)", "👁 Смотреть": "👁 View", "📍 Метка": "📍 Marker", "🔗 Связь": "🔗 Link", "✎ Изменить": "✎ Edit", "✥ Двигать": "✥ Move", "🗑 Удалить": "🗑 Delete", "↶ Назад": "↶ Undo", "Размер:": "Size:", "Свой цвет": "Custom color", "Подпись метки (например, номер выхода)": "Marker label (e.g. exit number)", "Связь": "Link", "Цепочка: 1 → 2 → 3 …": "Chain: 1 → 2 → 3 …", "Кольцо: 1 → 2 → 3 → 1": "Ring: 1 → 2 → 3 → 1", "Звезда: 1 ко всем остальным": "Star: 1 to all the others", "Название связи (необязательно)": "Link name (optional)", "✔ Готово": "✔ Done", "✖ Отмена": "✖ Cancel", "Подпись": "Label", "Заметка: что здесь, кто нашёл, когда…": "Note: what is here, who found it, when…", "💾 Сохранить": "💾 Save", "Закрыть": "Close", "🔎 Поиск: название, заметка, клетка (F7) или x,y": "🔎 Search: name, note, cell (F7) or x,y", "метки": "markers", "связи": "links", "сетка": "grid", "Фильтры меток": "Marker filters", "Пока нет меток": "No markers yet", "Связи (": "Links (", "👁 все": "👁 all", "🙈 все": "🙈 all", "Сохранить / загрузить": "Save / load", "🖼 Картинка с метками": "🖼 Image with markers", "💾 Данные (файл)": "💾 Data (file)", "📥 Импорт": "📥 Import", "Смотреть: нажмите на метку — откроются заметка и координаты. Связь: «🔗» → метки по порядку → «Готово»; готовую можно править, выбрав её в списке. «↶ Назад» (или Ctrl+Z) отменяет ваши последние действия. Сетка A1–Q14 помогает искать места. «👁» у связи скрывает её только у вас.": "View: click a marker to open its note and coordinates. Link: “🔗” → click markers in order → “Done”; an existing link can be edited by selecting it in the list. “↶ Undo” (or Ctrl+Z) reverts your recent actions. The A1–Q14 grid helps you find places. The “👁” next to a link hides it for you only.", "На весь экран": "Fullscreen", "Панель инструментов": "Toolbar", "Смотреть": "View", "Метка": "Marker", "Двигать": "Move", "Удалить": "Delete", "Назад": "Undo", "Готово": "Done", "Отмена": "Cancel", "Показать/скрыть": "Show/hide", "Выйти из полного экрана": "Exit fullscreen", "Нажмите на карту, чтобы поставить метку, затем «Сохранить»": "Click the map to place a marker, then press “Save”", "Новая метка — проверьте положение и подпись, затем «Сохранить»": "New marker — check the position and label, then press “Save”", "✔ Сохранить": "✔ Save", "Метка сохранена": "Marker saved", "Другие значки": "Other icons", "🔗 Ссылка на это место": "🔗 Link to this view", "🔗 Ссылка": "🔗 Link", "Ссылка скопирована": "Link copied", "Нажимайте метки по порядку, затем «Готово»": "Click markers in order, then press “Done”", "Нажмите на метку — она получит выбранные цвет, размер, значок и подпись (если поле не пустое)": "Click a marker to apply the selected color, size, icon and label (if the field is not empty)", "Зажмите метку и перетащите": "Press and drag a marker", "Нажмите на метку, чтобы удалить её": "Click a marker to delete it", "Нужен код редактора": "Editor code required", "База недоступна — только просмотр": "Database unavailable — view only", "Чтобы редактировать, введите код редактора (справа вверху) и нажмите «Войти»": "To edit, enter the editor code (top right) and press “Log in”", "Нет прав на запись: проверьте код редактора": "No write access: check the editor code", "Ошибка сохранения: ": "Save error: ", "Нечего отменять": "Nothing to undo", "Не удалось отменить": "Could not undo", "Отменено": "Undone", "В связи должно остаться минимум 2 точки": "A link must keep at least 2 points", "Нужно минимум 2 точки": "At least 2 points are needed", "Связь сохранена": "Link saved", "Браузер не дал сохранить картинку": "The browser would not save the image", "Готовлю картинку…": "Preparing the image…", "Не удалось создать картинку": "Could not create the image", "Файл не читается": "Cannot read the file", "Импортировано": "Imported", "Этот браузер не поддерживает системный полный экран. На iPhone: «Поделиться» → «На экран «Домой»», тогда карта будет открываться на весь экран.": "This browser does not support system fullscreen. On iPhone: Share → “Add to Home Screen”, then the map will open fullscreen.", "Ошибка подключения к базе (проверьте настройки Supabase и SQL)": "Database connection error (check Supabase settings and SQL)", "Введите код": "Enter the code", "Готово, можно редактировать": "Done, you can edit now", "Неверный код": "Wrong code", "Режим просмотра": "View mode", "Режим редактора": "Editor mode", "Не заполнены настройки Supabase в index.html": "Supabase settings are not filled in index.html", "Ничего не найдено": "Nothing found"};
 const tr=s=>lang=='en'&&EN[s]!==undefined?EN[s]:s,L=(ru,en)=>lang=='en'?en:ru;
-const infoText=p=>`${p.ic||'●'} ${L('клетка','cell')} ${cellOf(p.x,p.y)} · x${p.x} y${p.y}${p.author?' · '+p.author:''}`;
+const infoText=p=>`${p.ic||'●'} ${iconName(p.ic)?iconName(p.ic)+' · ':''}${L('клетка','cell')} ${cellOf(p.x,p.y)} · x${p.x} y${p.y}${p.author?' · '+p.author:''}`;
 function setWho(ru){whoRu=ru;$('#who').textContent=tr(ru)}
 const orig=new WeakMap();
 function applyLang(){document.documentElement.lang=lang;document.title=tr('YupLink — интерактивная карта');
@@ -87,23 +89,40 @@ const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;
 while(n=w.nextNode()){const p=n.parentNode;if(!p||/SCRIPT|STYLE/.test(p.nodeName))continue;let o=orig.get(n);if(o===undefined){o=n.nodeValue;orig.set(n,o)}const m=/^(\s*)([\s\S]*?)(\s*)$/.exec(o);if(!m[2])continue;n.nodeValue=m[1]+tr(m[2])+m[3]}
 document.querySelectorAll('[placeholder],[title]').forEach(e=>{for(const a of['placeholder','title']){if(a=='title'&&e.id=='lang')continue;if(!e.hasAttribute(a))continue;const k='o_'+a;if(e.dataset[k]===undefined)e.dataset[k]=e.getAttribute(a);e.setAttribute(a,tr(e.dataset[k]))}});
 $('#lang').textContent=lang=='en'?'RU':'EN';$('#fsbtn').title=tr(fsOn?'Выйти из полного экрана':'На весь экран');
-setWho(whoRu);list();fl();bar();upd();render();if($('#q').value)doSearch();if(selPin&&pins[selPin])$('#it').textContent=infoText(pins[selPin])}
+setWho(whoRu);rp();list();fl();bar();upd();render();if($('#q').value)doSearch();if(selPin&&pins[selPin])$('#it').textContent=infoText(pins[selPin])}
 $('#lang').onclick=()=>{lang=lang=='en'?'ru':'en';LS.s('yl_lang',lang);applyLang()};
 
 $('#nick').value=LS.g('yl_nick')||'';$('#nick').onchange=e=>LS.s('yl_nick',e.target.value.trim());
 $('#cols').innerHTML=COLS.map((c,i)=>`<button class="sw${i?'':' on'}" data-c="${c}" style="background:${c}"></button>`).join('')+'<input type="color" id="cc" value="#ff8800" title="Свой цвет">';
-$('#cols').onclick=e=>{const c=e.target.dataset.c;if(!c)return;col=c;$$('#cols .sw').forEach(b=>b.classList.toggle('on',b.dataset.c==c));render()};
-$('#cc').oninput=e=>{col=e.target.value;$$('#cols .sw').forEach(b=>b.classList.remove('on'));render()};
+$('#cols').onclick=e=>{const c=e.target.dataset.c;if(!c)return;col=c;$$('#cols .sw').forEach(b=>b.classList.toggle('on',b.dataset.c==c));curP=-1;rp();render()};
+$('#cc').oninput=e=>{col=e.target.value;$$('#cols .sw').forEach(b=>b.classList.remove('on'));curP=-1;rp();render()};
 $('#sizes').innerHTML='<span class="mu">Размер:</span>'+SL.map((l,i)=>`<button data-s="${i}" class="${i==1?'on':''}">${l}</button>`).join('');
-$('#sizes').onclick=e=>{const s=e.target.dataset.s;if(s==null)return;sz=+s;$$('#sizes button').forEach(b=>b.classList.toggle('on',b.dataset.s==s));render()};
+$('#sizes').onclick=e=>{const s=e.target.dataset.s;if(s==null)return;sz=+s;$$('#sizes button').forEach(b=>b.classList.toggle('on',b.dataset.s==s));curP=-1;rp();render()};
 $('#icons').innerHTML=ICONS.map((c,i)=>`<button class="ic${i?'':' on'}" data-i="${c}">${c}</button>`).join('');
-$('#icons').onclick=e=>{const i=e.target.dataset.i;if(!i)return;icon=i;$$('#icons button').forEach(b=>b.classList.toggle('on',b.dataset.i==i));render()};
+$('#icons').onclick=e=>{const i=e.target.dataset.i;if(!i)return;icon=i;$$('#icons button').forEach(b=>b.classList.toggle('on',b.dataset.i==i));curP=-1;rp();render()};
+const PRES=[
+{ic:'🚪',c:'#c77dff',s:1,ru:'Портал',en:'Portal'},
+{ic:'🌲',c:'#39d353',s:1,ru:'Дерево повышения уровня героя',en:'Hero level-up tree'},
+{ic:'⭐',c:'#f5c542',s:1,ru:'Статуя повышения уровня героя',en:'Hero level-up statue'},
+{ic:'⛏️',c:'#ff9f43',s:1,ru:'Ферма по добыче ресурсов',en:'Resource farm'},
+{ic:'💎',c:'#2ee6d6',s:1,ru:'Алмазная ферма',en:'Diamond farm'},
+{ic:'🌀',c:'#4da3ff',s:1,ru:'Колодец (вода за энергию)',en:'Water well (costs energy)'},
+{ic:'🚩',c:'#ff5c5c',s:1,ru:'Столб / алтарь изучения заклинаний',en:'Spell pillar / altar'},
+{ic:'❗',c:'#ff6bcb',s:1,ru:'Статуя изучения магии',en:'Magic-learning statue'},
+{ic:'🏰',c:'#ffffff',s:1,ru:'Город (название города — в подписи)',en:'City (put the city name in the label)'},
+{ic:'⚓',c:'#7aa2ff',s:1,ru:'Морской телепорт',en:'Sea teleport'},
+{ic:'🏪',c:'#ffd166',s:1,ru:'Магазин',en:'Shop'},
+{ic:'📦',c:'#b08968',s:1,ru:'Склад',en:'Storage'}],ICN=Object.fromEntries(PRES.map(p=>[p.ic,p]));let curP=-1;
+function iconName(ic){const p=ICN[ic];return p?L(p.ru,p.en):''}
+function rp(){$('#presets').innerHTML=PRES.map((p,i)=>`<button class="ic${i==curP?' on':''}" data-p="${i}" title="${esc(L(p.ru,p.en))}">${p.ic}</button>`).join('');$('#pname').textContent=curP>=0?PRES[curP].ic+' '+L(PRES[curP].ru,PRES[curP].en):L('Тип метки: выберите значок или настройте ниже','Marker type: pick an icon or customise below')}
+$('#presets').onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;const p=PRES[+b.dataset.p];curP=+b.dataset.p;icon=p.ic;col=p.c;sz=p.s;
+$$('#cols .sw').forEach(x=>x.classList.toggle('on',x.dataset.c==col));$$('#sizes button').forEach(x=>x.classList.toggle('on',x.dataset.s==sz));$$('#icons button').forEach(x=>x.classList.toggle('on',x.dataset.i==icon));rp();render()};
 const HINT={view:'',pin:'Нажмите на карту, чтобы поставить метку, затем «Сохранить»',link:'Нажимайте метки по порядку, затем «Готово»',ren:'Нажмите на метку — она получит выбранные цвет, размер, значок и подпись (если поле не пустое)',mov:'Зажмите метку и перетащите',del:'Нажмите на метку, чтобы удалить её'};
 function setTool(t){tool=t;draft=[];pdraft=null;$$('#tools button[data-t],#qbar button[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t==t));say(HINT[t]);bar();render()}
 $('#tools').onclick=e=>{if(e.target.dataset.t)setTool(e.target.dataset.t)};
 ['ll','lm','lg'].forEach(i=>$('#'+i).onchange=render);
 function say(m){const b=$('#msg');b.textContent=tr(m||'');b.style.display=m?'block':'none'}
-function bar(){$$('#qbar .lk').forEach(b=>b.style.display=((tool=='link'&&!(sel&&b.dataset.a=='done'))||(tool=='pin'&&pdraft))?'':'none');$('#pbar').style.display=tool=='pin'&&pdraft?'flex':'none';$('#lbar').style.display=tool=='link'?'flex':'none';$('#done').style.display=$('#gname').style.display=sel?'none':'';if(sel&&groups[sel])$('#mode').value=groups[sel].mode||'chain';
+function bar(){$$('#qbar .lk').forEach(b=>b.style.display=(tool=='link'&&!(sel&&b.dataset.a=='done'))?'':'none');$('#pfloat').style.display=tool=='pin'&&pdraft?'flex':'none';$('#lbar').style.display=tool=='link'?'flex':'none';$('#done').style.display=$('#gname').style.display=sel?'none':'';if(sel&&groups[sel])$('#mode').value=groups[sel].mode||'chain';
 $('#hint').textContent=sel?L('Правка связи: нажимайте метки, чтобы добавить/убрать','Editing link: click markers to add/remove'):L(`Новая связь: выбрано точек — ${draft.length}`,`New link: ${draft.length} points selected`)}
 const xy=id=>pins[id]?[pins[id].x,pins[id].y]:null,nm=id=>pins[id]?.label||'•';
 const vis=p=>!fIc.has(p.ic||'●')&&!fCol.has(p.c);
@@ -143,7 +162,8 @@ if(x){if(sel==x)sel=null;w(()=>db.doc('groups/'+x).delete());return}
 if(!d)return;const id=d.dataset.id;sel=sel==id?null:id;if(sel){setTool('link');const g=groups[id],P=g.pts.map(xy).filter(Boolean);if(P.length)focus(P.reduce((a,p)=>a+p[0],0)/P.length,P.reduce((a,p)=>a+p[1],0)/P.length,tf.z)}bar();list();render()};
 $('#showall').onclick=()=>{hid.clear();saveHid();list();render()};$('#hideall').onclick=()=>{Object.keys(groups).forEach(i=>hid.add(i));saveHid();list();render()};
 function fl(){const ic={},cl={};for(const p of Object.values(pins)){const i=p.ic||'●';ic[i]=(ic[i]||0)+1;cl[p.c]=(cl[p.c]||0)+1}
-$('#flt').innerHTML=Object.keys(ic).length?'<div class="row">'+Object.entries(ic).map(([i,n])=>`<button class="ic ${fIc.has(i)?'off':''}" data-fi="${i}">${i} ${n}</button>`).join('')+'</div><div class="row" style="margin-top:6px">'+Object.entries(cl).map(([c,n])=>`<button class="sw ${fCol.has(c)?'off':''}" data-fc="${c}" style="background:${c}" title="${n}"></button>`).join('')+'</div>':tr('Пока нет меток')}
+$('#flt').innerHTML=Object.keys(ic).length?'<div class="row">'+Object.entries(ic).map(([i,n])=>`<button class="ic ${fIc.has(i)?'off':''}" data-fi="${i}" title="${esc(iconName(i))}">${i} ${n}</button>`).join('')+'</div><div class="row" style="margin-top:6px">'+Object.entries(cl).map(([c,n])=>`<button class="sw ${fCol.has(c)?'off':''}" data-fc="${c}" style="background:${c}" title="${n}"></button>`).join('')+'</div>':tr('Пока нет меток')}
+$('#fshow').onclick=()=>{fIc.clear();fCol.clear();fl();render()};$('#fhide').onclick=()=>{for(const p of Object.values(pins))fIc.add(p.ic||'●');fl();render()};
 $('#flt').onclick=e=>{const i=e.target.dataset.fi,c=e.target.dataset.fc;if(i!=null)fIc.has(i)?fIc.delete(i):fIc.add(i);else if(c)fCol.has(c)?fCol.delete(c):fCol.add(c);else return;fl();render()};
 function focus(x,y,z){const r=v.getBoundingClientRect();tf.z=Math.max(minZ,z);tf.x=r.width/2-x*tf.z;tf.y=r.height/2-y*tf.z;apply();render()}
 function apply(){st.style.transform=`translate(${tf.x}px,${tf.y}px) scale(${tf.z})`}
@@ -170,7 +190,7 @@ $('#iclose').onclick=closeInfo;$('#isave').onclick=()=>{const n=selPin;if(n)w(()
 v.addEventListener('wheel',e=>{e.preventDefault();const r=v.getBoundingClientRect();zoomAt(e.clientX-r.left,e.clientY-r.top,e.deltaY<0?1.2:1/1.2)},{passive:false});
 v.addEventListener('pointermove',e=>{if(e.pointerType=='mouse'){const[x,y]=toMap(e);$('#coord').textContent=(x>=0&&y>=0&&x<=IW&&y<=IH)?`${cellOf(x,y)} · x${Math.round(x)} y${Math.round(y)}`:'—'}});
 const ptrs=new Map();let drag=null,pinch=0;const pd=()=>{const a=[...ptrs.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)};
-v.addEventListener('pointerdown',e=>{if(e.target.closest('#msg,#qbar,#fsb'))return;v.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});drag={sx:e.clientX,sy:e.clientY,tx:tf.x,ty:tf.y,moved:false};if(ptrs.size==2){pinch=pd();drag.moved=true;dragPin=null}
+v.addEventListener('pointerdown',e=>{if(e.target.closest('#msg,#qbar,#fsb,#pfloat'))return;v.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});drag={sx:e.clientX,sy:e.clientY,tx:tf.x,ty:tf.y,moved:false};if(ptrs.size==2){pinch=pd();drag.moved=true;dragPin=null}
 if(tool=='mov'&&ptrs.size==1){const[x,y]=toMap(e),n=hit(x,y);if(n){if(ro||!db){say('Нужен код редактора');return}dragPin=n;dragOrig={x:pins[n].x,y:pins[n].y};v.style.cursor='grabbing'}}});
 v.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
 if(ptrs.size==2){const d=pd(),a=[...ptrs.values()],r=v.getBoundingClientRect();if(pinch)zoomAt((a[0].x+a[1].x)/2-r.left,(a[0].y+a[1].y)/2-r.top,d/pinch);pinch=d;return}
@@ -191,16 +211,16 @@ $('#undo').onclick=undo;addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)
 function hit(mx,my){let best=null,bb=1e9;for(const[id,p]of Object.entries(pins)){if(!vis(p))continue;const d=Math.hypot(p.x-mx,p.y-my),thr=Math.max(10*SZ[p.s??1]*Math.sqrt(tf.z)*1.6,16)/tf.z;if(d<thr&&d<bb){bb=d;best=id}}return best}
 function click(e){const[mx,my]=toMap(e),n=hit(mx,my);
 if(tool=='view'){n?openInfo(n):closeInfo()}
-else if(tool=='pin'){if(!n){pdraft={x:Math.round(mx),y:Math.round(my)};bar();render()}}
+else if(tool=='pin'){if(!n){pdraft={x:Math.round(mx),y:Math.round(my)};$('#plab').value=$('#lab').value;bar();render();if(!matchMedia('(pointer:coarse)').matches)setTimeout(()=>$('#plab').focus(),0)}}
 else if(tool=='ren'){if(n)w(()=>db.doc('pins/'+n).set({label:$('#lab').value.trim()||pins[n].label||'',c:col,s:sz,ic:icon}))}
 else if(tool=='del'){if(n)w(async()=>{for(const[id,g]of Object.entries(groups)){if(!g.pts.includes(n))continue;const pts=g.pts.filter(i=>i!=n);if(pts.length<2)await db.doc('groups/'+id).delete();else await db.doc('groups/'+id).set({pts})}await db.doc('pins/'+n).delete()})}
 else if(tool=='link'&&n){if(sel&&groups[sel]){const g=groups[sel],has=g.pts.includes(n),pts=has?g.pts.filter(i=>i!=n):[...g.pts,n];if(pts.length<2){say('В связи должно остаться минимум 2 точки');return}w(()=>db.doc('groups/'+sel).set({pts}))}
 else{const i=draft.indexOf(n);if(i<0)draft.push(n);else draft.splice(i,1);bar();render()}}}
 $('#mode').onchange=()=>{if(sel&&groups[sel]){const mode=$('#mode').value;w(()=>db.doc('groups/'+sel).set({mode}))}};
-function savePin(){if(!pdraft)return;const d=pdraft;w(async()=>{await db.collection('pins').add({x:d.x,y:d.y,label:$('#lab').value.trim(),c:col,s:sz,ic:icon,author:$('#nick').value.trim(),note:''});pdraft=null;$('#lab').value='';bar();render();say('Метка сохранена')})}
+function savePin(){if(!pdraft)return;const d=pdraft;w(async()=>{await db.collection('pins').add({x:d.x,y:d.y,label:$('#lab').value.trim(),c:col,s:sz,ic:icon,author:$('#nick').value.trim(),note:''});pdraft=null;$('#lab').value='';$('#plab').value='';bar();render();say('Метка сохранена')})}
 function cancelPin(){pdraft=null;bar();render();say('')}
-$('#pdone').onclick=savePin;$('#pcancel').onclick=cancelPin;
-$('#lab').oninput=()=>{if(pdraft)render()};$('#lab').onkeydown=e=>{if(e.key=='Enter'&&pdraft){e.preventDefault();savePin()}};
+$('#pfs').onclick=savePin;$('#pfc').onclick=cancelPin;$('#plab').oninput=e=>{$('#lab').value=e.target.value;render()};$('#plab').onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();savePin()}};
+$('#lab').oninput=()=>{$('#plab').value=$('#lab').value;if(pdraft)render()};$('#lab').onkeydown=e=>{if(e.key=='Enter'&&pdraft){e.preventDefault();savePin()}};
 $('#done').onclick=()=>{if(draft.length<2){say('Нужно минимум 2 точки');return}const g={pts:draft.slice(),mode:$('#mode').value,c:col,name:$('#gname').value.trim()};w(async()=>{await db.collection('groups').add(g);draft=[];$('#gname').value='';bar();say('Связь сохранена')})};
 $('#cancel').onclick=()=>{draft=[];if(sel){sel=null;list()}bar();render();say('')};
 // ---- экспорт
@@ -236,8 +256,15 @@ $('#a2hsb').innerHTML='<b>'+L('Добавить на экран «Домой»',
 $('#a2hs').onclick=async()=>{if(dpr){dpr.prompt();try{await dpr.userChoice}catch(e){}dpr=null;return}showA2()};
 $('#a2hsm').onclick=e=>{if(e.target.id=='a2hsm'||e.target.id=='a2x')$('#a2hsm').style.display='none'};
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+// ---- ссылки на место
+const mkLink=(x,y,id)=>location.href.split('#')[0]+'#x='+Math.round(x)+'&y='+Math.round(y)+'&z='+(+tf.z.toFixed(2))+(id?'&m='+id:'');
+async function copyLink(u){try{await navigator.clipboard.writeText(u);say('Ссылка скопирована');return}catch(e){}
+const a=document.createElement('textarea');a.value=u;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch(x){}a.remove();
+if(ok)say('Ссылка скопирована');else if(navigator.share)navigator.share({url:u}).catch(()=>{});else say(u)}
+$('#share').onclick=()=>{const r=v.getBoundingClientRect();copyLink(mkLink((r.width/2-tf.x)/tf.z,(r.height/2-tf.y)/tf.z))};
+$('#ishare').onclick=()=>{const p=pins[selPin];if(p)copyLink(mkLink(p.x,p.y,selPin))};
 // ---- Supabase
-const CFG=(window.YL_CONFIG&&!String(window.YL_CONFIG.url).startsWith('PASTE'))?window.YL_CONFIG:{url:'https://vovkgkmugmfgyhsooimb.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvdmtna211Z21mZ3loc29vaW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NTU5MDQsImV4cCI6MjEwNjMzMTkwNH0.EA7h-RLgi5rawFYHe3oc-JnKQD7Tw9z_e4oK7hpI6mw'};
+const CFG=(window.YL_CONFIG&&!String(window.YL_CONFIG.url).startsWith('PASTE'))?window.YL_CONFIG:{url:'PASTE_SUPABASE_URL',key:'PASTE_SUPABASE_ANON_KEY'};
 let code=LS.g('yl_code')||'';
 const ok=r=>{if(r.error)throw r.error;return r};
 const COL={pins:['x','y','label','c','s','ic','note','author'],groups:['pts','mode','c','name']};
@@ -249,12 +276,16 @@ doc:p=>{const[t,id]=p.split('/');const up=async o=>{const old=snap(t,id);const r
 return{set:up,update:up,delete:async()=>{const old=snap(t,id);const r=ok(await wr.from(t).delete().eq('id',id));if(curB&&old)curB.push({t,k:'ins',row:old});return r}}}};
 async function load(){const[a,b]=await Promise.all([rd.from('pins').select('*'),rd.from('groups').select('*')]);
 if(a.error||b.error){setWho('Ошибка подключения к базе (проверьте настройки Supabase и SQL)');return}
-if(dragPin)return;pins={};a.data.forEach(r=>pins[r.id]=r);groups={};b.data.forEach(r=>groups[r.id]=r);if(sel&&!groups[sel])sel=null;if(selPin&&!pins[selPin]){selPin=null;$('#info').style.display='none'}render();list();fl();if($('#q').value)doSearch()}
+if(dragPin)return;pins={};a.data.forEach(r=>pins[r.id]=r);groups={};b.data.forEach(r=>groups[r.id]=r);if(sel&&!groups[sel])sel=null;if(selPin&&!pins[selPin]){selPin=null;$('#info').style.display='none'}render();list();fl();if($('#q').value)doSearch();if(hashPin&&pins[hashPin]){const p=pins[hashPin];hashPin=null;goTo({x:p.x,y:p.y,id:p.id})}}
 let tm;const sched=()=>{clearTimeout(tm);tm=setTimeout(load,120)};
 async function login(c){code=(c||'').trim();if(!code){say('Введите код');return}mkw();const r=await wr.rpc('can_edit');
 if(!r.error&&r.data===true){ro=false;LS.s('yl_code',code);setWho('Режим редактора');$('#code').value='';say('Готово, можно редактировать')}else{ro=true;setWho('Режим просмотра');say('Неверный код')}}
 $('#login').onclick=()=>login($('#code').value);$('#code').onkeydown=e=>{if(e.key=='Enter')login($('#code').value)};
-addEventListener('resize',onResize);const im=$('#im');im.onload=fit;if(im.complete&&im.naturalWidth)fit();bar();upd();
+addEventListener('resize',onResize);let hashPin=null;
+function applyHash(){const q=new URLSearchParams(location.hash.slice(1)),x=+q.get('x'),y=+q.get('y'),z=+q.get('z');if(q.get('x')===null||q.get('y')===null||!isFinite(x)||!isFinite(y))return;focus(x,y,z>0?z:.7);flash={x,y};render();setTimeout(()=>{flash=null;render()},6000);hashPin=q.get('m');if(hashPin&&pins[hashPin]){const p=pins[hashPin];hashPin=null;goTo({x:p.x,y:p.y,id:p.id})}}
+function startView(){fit();applyHash()}
+addEventListener('hashchange',applyHash);
+const im=$('#im');im.onload=startView;if(im.complete&&im.naturalWidth)startView();bar();upd();
 applyLang();
 (async()=>{if(CFG.url.startsWith('PASTE')){setWho('Не заполнены настройки Supabase в index.html');return}
 rd=supabase.createClient(CFG.url,CFG.key);mkw();setWho('Режим просмотра');await load();
